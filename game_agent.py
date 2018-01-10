@@ -254,30 +254,18 @@ class AlphaBetaPlayer(IsolationPlayer):
             The board coordinates of the best move found in the current search;
             (-1, -1) if there are no legal moves
 
-        Notes
-        -----
-            (1) You MUST use the `self.score()` method for board evaluation
-                to pass the project tests; you cannot call any other evaluation
-                function directly.
-
-            (2) If you use any helper functions (e.g., as shown in the AIMA
-                pseudocode) then you must copy the timer check into the top of
-                each helper function or else your agent will timeout during
-                testing.
         """
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
-
         # print("in AlphaBetaPlayer.alphabeta()")
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         best_score = float("-inf")
         best_move = None
         for aMove in game.get_legal_moves():
-            vBoard = self.max_value(game.forecast_move(aMove), depth-1, alpha, beta)
+            vBoard = self.min_value(game.forecast_move(aMove), depth-1, alpha, beta)
             if vBoard > best_score:
                 best_score = vBoard
                 best_move = aMove
+            alpha = max(alpha, vBoard)
         return best_move
 
     def terminal_test(self, game):
