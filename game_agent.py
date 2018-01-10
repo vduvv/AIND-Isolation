@@ -33,18 +33,51 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    nMoves_active_player = len(game.get_legal_moves(player))
-    nMoves_inactive_player = len(game.get_legal_moves(game.get_opponent(player)))
-    return 1.0 * nMoves_active_player
+    if game.is_loser(player):
+        return float("-inf")
 
-def custom_score_2(game, player):
-    nMoves_active_player = len(game.get_legal_moves(player))
-    nMoves_inactive_player = len(game.get_legal_moves(game.get_opponent(player)))
+    if game.is_winner(player):
+        return float("inf")
+
+    moves_active_player = game.get_legal_moves(player)
+    moves_inactive_player = game.get_legal_moves(game.get_opponent(player))
+
+    nMoves_active_player = len(moves_active_player)
+    nMoves_inactive_player = len(moves_inactive_player)
+
     return 1.0 * nMoves_active_player - nMoves_inactive_player
 
+def custom_score_2(game, player):
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    moves_active_player = game.get_legal_moves(player)
+    moves_inactive_player = game.get_legal_moves(game.get_opponent(player))
+
+    nMoves_active_player = len(moves_active_player)
+    nMoves_inactive_player = len(moves_inactive_player)
+
+    if nMoves_active_player == 0:
+        return 0
+    else:
+        return (nMoves_active_player - nMoves_inactive_player) / nMoves_active_player
+
 def custom_score_3(game, player):
-    nMoves_active_player = len(game.get_legal_moves(player))
-    nMoves_inactive_player = len(game.get_legal_moves(game.get_opponent(player)))
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    moves_active_player = game.get_legal_moves(player)
+    moves_inactive_player = game.get_legal_moves(game.get_opponent(player))
+
+    nMoves_active_player = len(moves_active_player)
+    nMoves_inactive_player = len(moves_inactive_player)
+
     if nMoves_inactive_player == 0:
         return nMoves_active_player
     else:
@@ -53,24 +86,6 @@ def custom_score_3(game, player):
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
     constructed or tested directly.
-
-    ********************  DO NOT MODIFY THIS CLASS  ********************
-
-    Parameters
-    ----------
-    search_depth : int (optional)
-        A strictly positive integer (i.e., 1, 2, 3,...) for the number of
-        layers in the game tree to explore for fixed-depth search. (i.e., a
-        depth of one (1) would only explore the immediate sucessors of the
-        current state.)
-
-    score_fn : callable (optional)
-        A function to use for heuristic evaluation of game states.
-
-    timeout : float (optional)
-        Time remaining (in milliseconds) when search is aborted. Should be a
-        positive value large enough to allow the function to return before the
-        timer expires.
     """
     def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
         #print("in IsolationPlayer.__init__()")
@@ -86,56 +101,34 @@ class MinimaxPlayer(IsolationPlayer):
     """
 
     def get_move(self, game, time_left):
-        #print("in MinimaxPlayer.get_move()")
-
-        """Search for the best move from the available legal moves and return a
-        result before the time limit expires.
-
-        **************  YOU DO NOT NEED TO MODIFY THIS FUNCTION  *************
-
-        For fixed-depth search, this function simply wraps the call to the
-        minimax method, but this method provides a common interface for all
-        Isolation agents, and you will replace it in the AlphaBetaPlayer with
-        iterative deepening search.
-
-        Parameters
-        ----------
-        game : `isolation.Board`
-            An instance of `isolation.Board` encoding the current state of the
-            game (e.g., player locations and blocked cells).
-
-        time_left : callable
-            A function that returns the number of milliseconds left in the
-            current turn. Returning with any less than 0 ms remaining forfeits
-            the game.
-
-        Returns
-        -------
-        (int, int)
-            Board coordinates corresponding to a legal move; may return
-            (-1, -1) if there are no available legal moves.
-        """
         self.time_left = time_left
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
-        best_move = (-1, -1)
+        if len(game.get_legal_moves()) > 0:
+            best_move = game.get_legal_moves()[0]
+
+        if self.time_left() < 0:
+            return best_move
+
         try:
             return self.minimax(game, self.search_depth)
         except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            pass
         return best_move
 
     def minimax(self, game, depth):
         #print("in MinimaxPlayer.minimax()")
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
+
         best_score = float("-inf")
         best_move = None
+
         for aMove in game.get_legal_moves():
-            vBoard = self.min_value(game.forecast_move(aMove), depth-1)
-            if vBoard > best_score:
-                best_score = vBoard
+            aScore = self.min_value(game.forecast_move(aMove), depth-1)
+            if aScore > best_score:
+                best_score = aScore
                 best_move = aMove
         return best_move
 
@@ -149,10 +142,10 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
         if depth == 0 or self.terminal_test(game):
             return self.score(game, self)
-        vBoard = float("-inf")
+        aScore = float("-inf")
         for aMove in game.get_legal_moves():
-            vBoard = max(vBoard, self.min_value(game.forecast_move(aMove), depth-1))
-        return vBoard
+            aScore = max(aScore, self.min_value(game.forecast_move(aMove), depth-1))
+        return aScore
 
     def min_value(self, game, depth):
         #print("in MinimaxPlayer.min_value()")
@@ -160,10 +153,10 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
         if depth == 0 or self.terminal_test(game):
             return self.score(game, self)
-        vBoard = float("inf")
+        aScore = float("inf")
         for aMove in game.get_legal_moves():
-            vBoard = min(vBoard, self.max_value(game.forecast_move(aMove), depth-1))
-        return vBoard
+            aScore = min(aScore, self.max_value(game.forecast_move(aMove), depth-1))
+        return aScore
 
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
@@ -173,40 +166,18 @@ class AlphaBetaPlayer(IsolationPlayer):
 
     def get_move(self, game, time_left):
         #print("in AlphaBetaPlayer.get_move()")
-        """Search for the best move from the available legal moves and return a
-        result before the time limit expires.
-
-        Modify the get_move() method from the MinimaxPlayer class to implement
-        iterative deepening search instead of fixed-depth search.
-
-        **********************************************************************
-        NOTE: If time_left() < 0 when this function returns, the agent will
-              forfeit the game due to timeout. You must return _before_ the
-              timer reaches 0.
-        **********************************************************************
-
-        Parameters
-        ----------
-        game : `isolation.Board`
-            An instance of `isolation.Board` encoding the current state of the
-            game (e.g., player locations and blocked cells).
-
-        time_left : callable
-            A function that returns the number of milliseconds left in the
-            current turn. Returning with any less than 0 ms remaining forfeits
-            the game.
-
-        Returns
-        -------
-        (int, int)
-            Board coordinates corresponding to a legal move; may return
-            (-1, -1) if there are no available legal moves.
-        """
         self.time_left = time_left
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
-        best_move = (-1, -1)
+#        best_move = (-1, -1)
+
+        if len(game.get_legal_moves()) > 0:
+            best_move = game.get_legal_moves()[0]
+
+        if self.time_left() < 0:
+            return best_move
+
         try:
             depth = 1
             while True:
@@ -214,58 +185,25 @@ class AlphaBetaPlayer(IsolationPlayer):
                     raise SearchTimeout()
                 best_move = self.alphabeta(game, depth)
                 depth += 1
-
         except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            return best_move
         return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         #print("in AlphaBetaPlayer.alphabeta()")
-        """Implement depth-limited minimax search with alpha-beta pruning as
-        described in the lectures.
+        best_score = float("-inf")
+        best_move = None
 
-        This should be a modified version of ALPHA-BETA-SEARCH in the AIMA text
-        https://github.com/aimacode/aima-pseudocode/blob/master/md/Alpha-Beta-Search.md
-
-        **********************************************************************
-            You MAY add additional methods to this class, or define helper
-                 functions to implement the required functionality.
-        **********************************************************************
-
-        Parameters
-        ----------
-        game : isolation.Board
-            An instance of the Isolation game `Board` class representing the
-            current game state
-
-        depth : int
-            Depth is an integer representing the maximum number of plies to
-            search in the game tree before aborting
-
-        alpha : float
-            Alpha limits the lower bound of search on minimizing layers
-
-        beta : float
-            Beta limits the upper bound of search on maximizing layers
-
-        Returns
-        -------
-        (int, int)
-            The board coordinates of the best move found in the current search;
-            (-1, -1) if there are no legal moves
-
-        """
         # print("in AlphaBetaPlayer.alphabeta()")
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
-        best_score = float("-inf")
-        best_move = None
+
         for aMove in game.get_legal_moves():
-            vBoard = self.min_value(game.forecast_move(aMove), depth-1, alpha, beta)
-            if vBoard > best_score:
-                best_score = vBoard
+            aScore = self.min_value(game.forecast_move(aMove), depth-1, alpha, beta)
+            if aScore > best_score:
+                best_score = aScore
                 best_move = aMove
-            alpha = max(alpha, vBoard)
+            alpha = max(alpha, aScore)
         return best_move
 
     def terminal_test(self, game):
@@ -278,13 +216,13 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
         if depth == 0 or self.terminal_test(game):
             return self.score(game, self)
-        vBoard = float("-inf")
+        aScore = float("-inf")
         for aMove in game.get_legal_moves():
-            vBoard = max(vBoard, self.min_value(game.forecast_move(aMove), depth-1, alpha, beta))
-            if vBoard >= beta:
-                return vBoard
-            alpha = max(alpha, vBoard)
-        return vBoard
+            aScore = max(aScore, self.min_value(game.forecast_move(aMove), depth-1, alpha, beta))
+            if aScore >= beta:
+                return aScore
+            alpha = max(alpha, aScore)
+        return aScore
 
     def min_value(self, game, depth, alpha, beta):
         #print("in MinimaxPlayer.min_value()")
@@ -292,10 +230,10 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
         if depth == 0 or self.terminal_test(game):
             return self.score(game, self)
-        vBoard = float("inf")
+        aScore = float("inf")
         for aMove in game.get_legal_moves():
-            vBoard = min(vBoard, self.max_value(game.forecast_move(aMove), depth-1, alpha, beta))
-            if vBoard <= alpha:
-                return vBoard
-            beta = min(beta, vBoard)
-        return vBoard
+            aScore = min(aScore, self.max_value(game.forecast_move(aMove), depth-1, alpha, beta))
+            if aScore <= alpha:
+                return aScore
+            beta = min(beta, aScore)
+        return aScore
