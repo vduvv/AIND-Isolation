@@ -38,6 +38,7 @@ class Board(object):
     NOT_MOVED = None
 
     def __init__(self, player_1, player_2, width=7, height=7):
+        #print("in Board.__init__()")
         self.width = width
         self.height = height
         self.move_count = 0
@@ -53,10 +54,12 @@ class Board(object):
         self._board_state[-2] = Board.NOT_MOVED
 
     def hash(self):
+        #print("in Board.hash()")
         return str(self._board_state).__hash__()
 
     @property
     def active_player(self):
+        #print("in Board.active_player()")
         """The object registered as the player holding initiative in the
         current game state.
         """
@@ -64,12 +67,14 @@ class Board(object):
 
     @property
     def inactive_player(self):
+        #print("in Board.inactive_player()")
         """The object registered as the player in waiting for the current
         game state.
         """
         return self._inactive_player
 
     def get_opponent(self, player):
+        #print("in Board.get_opponent()")
         """Return the opponent of the supplied player.
 
         Parameters
@@ -91,6 +96,7 @@ class Board(object):
         raise RuntimeError("`player` must be an object registered as a player in the current game.")
 
     def copy(self):
+        #print("in Board.copy()")
         """ Return a deep copy of the current board. """
         new_board = Board(self._player_1, self._player_2, width=self.width, height=self.height)
         new_board.move_count = self.move_count
@@ -100,6 +106,7 @@ class Board(object):
         return new_board
 
     def forecast_move(self, move):
+        #print("in Board.forecast_move()")
         """Return a deep copy of the current game with an input move applied to
         advance the game one ply.
 
@@ -119,6 +126,7 @@ class Board(object):
         return new_board
 
     def move_is_legal(self, move):
+        #print("in Board.move_is_legal()")
         """Test whether a move is legal in the current game state.
 
         Parameters
@@ -137,12 +145,14 @@ class Board(object):
                 self._board_state[idx] == Board.BLANK)
 
     def get_blank_spaces(self):
+        #print("in Board.get_blank_spaces()")
         """Return a list of the locations that are still available on the board.
         """
         return [(i, j) for j in range(self.width) for i in range(self.height)
                 if self._board_state[i + j * self.height] == Board.BLANK]
 
     def get_player_location(self, player):
+        #print("in Board.get_player_location()")
         """Find the current location of the specified player on the board.
 
         Parameters
@@ -172,6 +182,7 @@ class Board(object):
         return (h, w)
 
     def get_legal_moves(self, player=None):
+        #print("in Board.get_legal_moves()")
         """Return the list of all legal moves for the specified player.
 
         Parameters
@@ -191,6 +202,7 @@ class Board(object):
         return self.__get_moves(self.get_player_location(player))
 
     def apply_move(self, move):
+        #print("in Board.apply_move()")
         """Move the active player to a specified location.
 
         Parameters
@@ -208,14 +220,17 @@ class Board(object):
         self.move_count += 1
 
     def is_winner(self, player):
+        #print("in Board.is_winner()")
         """ Test whether the specified player has won the game. """
         return player == self._inactive_player and not self.get_legal_moves(self._active_player)
 
     def is_loser(self, player):
+        #print("in Board.is_loser()")
         """ Test whether the specified player has lost the game. """
         return player == self._active_player and not self.get_legal_moves(self._active_player)
 
     def utility(self, player):
+        #print("in Board.utility()")
         """Returns the utility of the current game state from the perspective
         of the specified player.
 
@@ -248,6 +263,7 @@ class Board(object):
         return 0.
 
     def __get_moves(self, loc):
+        #print("in Board.__get_moves()")
         """Generate the list of possible moves for an L-shaped motion (like a
         knight in chess).
         """
@@ -263,10 +279,12 @@ class Board(object):
         return valid_moves
 
     def print_board(self):
+        #print("in Board.print_board()")
         """DEPRECATED - use Board.to_string()"""
         return self.to_string()
 
     def to_string(self, symbols=['1', '2']):
+        #print("in Board.to_string()")
         """Generate a string representation of the current game state, marking
         the location of each player and indicating which cells have been
         blocked, and which remain open.
@@ -296,6 +314,7 @@ class Board(object):
         return out
 
     def play(self, time_limit=TIME_LIMIT_MILLIS):
+        #print("in Board.play()")
         """Execute a match between the players by alternately soliciting them
         to select a move and applying it in the game.
 
