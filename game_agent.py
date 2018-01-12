@@ -60,10 +60,44 @@ def custom_score_2(game, player):
     nMoves_active_player = len(moves_active_player)
     nMoves_inactive_player = len(moves_inactive_player)
 
-    if nMoves_active_player == 0:
-        return 0
-    else:
-        return (nMoves_active_player - nMoves_inactive_player) / nMoves_active_player
+    factor_active_player = 0.
+    factor_inactive_player = 0.
+
+    board_corners = [(0,0),(0,6),(6,0),(6,6)]
+    three_moves = [(0,1),(1,0),(0,5),(1,6),(5,0),(6,1),(5,6),(6,5)]
+    four_moves = [(0,2),(0,3),(0,4),(1,1),(1,5),(2,0),(3,0),(4,0),(2,6),(3,6),(4,6),(5,1),(5,5),(6,2),(6,3),(6,4)]
+    six_moves = [(1,2),(1,3),(1,4),(2,1),(3,1),(4,1),(2,5),(3,5),(4,5),(5,2),(5,3),(5,4)]
+    center = (3, 3)
+
+    for aMove in moves_active_player:
+        if aMove == center:
+            factor_active_player += 100
+        elif aMove in board_corners:
+            factor_active_player += 2
+        elif aMove in three_moves:
+            factor_active_player += 3
+        elif aMove in four_moves:
+            factor_active_player += 4
+        elif aMove in six_moves:
+            factor_active_player += 6
+        else:
+            factor_active_player += 8
+
+    for aMove in moves_inactive_player:
+        if aMove == center:
+            factor_active_player += -100
+        elif aMove in board_corners:
+            factor_active_player += -2
+        elif aMove in three_moves:
+            factor_active_player += -3
+        elif aMove in four_moves:
+            factor_active_player += -4
+        elif aMove in six_moves:
+            factor_active_player += -6
+        else:
+            factor_active_player += -8
+
+    return factor_active_player + factor_inactive_player
 
 def custom_score_3(game, player):
     if game.is_loser(player):
@@ -78,10 +112,16 @@ def custom_score_3(game, player):
     nMoves_active_player = len(moves_active_player)
     nMoves_inactive_player = len(moves_inactive_player)
 
-    if nMoves_inactive_player == 0:
-        return nMoves_active_player
-    else:
-        return nMoves_active_player / nMoves_inactive_player
+    center = (3, 3)
+    factor_active_player = 1.
+    factor_inactive_player = 1.
+
+    if center in moves_active_player:
+        factor_active_player += 10
+    elif center in moves_inactive_player:
+        factor_inactive_player += 10
+
+    return factor_active_player * nMoves_active_player - factor_inactive_player * nMoves_inactive_player
 
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
@@ -105,8 +145,7 @@ class MinimaxPlayer(IsolationPlayer):
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
-        if len(game.get_legal_moves()) > 0:
-            best_move = game.get_legal_moves()[0]
+        best_move = (-1, -1)
 
         if self.time_left() < 0:
             return best_move
@@ -124,6 +163,9 @@ class MinimaxPlayer(IsolationPlayer):
 
         best_score = float("-inf")
         best_move = None
+
+        if len(game.get_legal_moves()) > 0:
+            best_move = game.get_legal_moves()[0]
 
         for aMove in game.get_legal_moves():
             aScore = self.min_value(game.forecast_move(aMove), depth-1)
@@ -170,10 +212,7 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
-#        best_move = (-1, -1)
-
-        if len(game.get_legal_moves()) > 0:
-            best_move = game.get_legal_moves()[0]
+        best_move = (-1, -1)
 
         if self.time_left() < 0:
             return best_move
@@ -197,6 +236,9 @@ class AlphaBetaPlayer(IsolationPlayer):
         # print("in AlphaBetaPlayer.alphabeta()")
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
+
+        if len(game.get_legal_moves()) > 0:
+            best_move = game.get_legal_moves()[0]
 
         for aMove in game.get_legal_moves():
             aScore = self.min_value(game.forecast_move(aMove), depth-1, alpha, beta)

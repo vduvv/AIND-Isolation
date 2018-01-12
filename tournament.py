@@ -23,8 +23,8 @@ from sample_players import (RandomPlayer, open_move_score,
 from game_agent import (MinimaxPlayer, AlphaBetaPlayer, custom_score,
                         custom_score_2, custom_score_3)
 
-NUM_MATCHES = 5  # number of matches against each opponent
-TIME_LIMIT = 1000  # number of milliseconds before timeout
+NUM_MATCHES = 10 # number of matches against each opponent
+TIME_LIMIT = 150  # number of milliseconds before timeout
 
 DESCRIPTION = """
 This script evaluates the performance of the custom_score evaluation
@@ -35,7 +35,6 @@ game_agent.py.
 """
 
 Agent = namedtuple("Agent", ["player", "name"])
-
 
 def play_round(cpu_agent, test_agents, win_counts, num_matches):
     """Compare the test agents to the cpu agent in "fair" matches.
