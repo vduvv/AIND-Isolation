@@ -359,3 +359,4 @@ class Board(object):
             move_history.append(list(curr_move))
 
             self.apply_move(curr_move)
+            self.to_string()

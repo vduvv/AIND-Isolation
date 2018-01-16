@@ -39,13 +39,13 @@ def custom_score(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    moves_active_player = game.get_legal_moves(player)
-    moves_inactive_player = game.get_legal_moves(game.get_opponent(player))
+    moves_my_player = game.get_legal_moves(player)
+    moves_opp_player = game.get_legal_moves(game.get_opponent(player))
 
-    nMoves_active_player = len(moves_active_player)
-    nMoves_inactive_player = len(moves_inactive_player)
+    nMoves_my_player = len(moves_my_player)
+    nMoves_opp_player = len(moves_opp_player)
 
-    return 1.0 * nMoves_active_player - nMoves_inactive_player
+    return float(nMoves_my_player - nMoves_opp_player)
 
 def custom_score_2(game, player):
     if game.is_loser(player):
@@ -54,14 +54,14 @@ def custom_score_2(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    moves_active_player = game.get_legal_moves(player)
-    moves_inactive_player = game.get_legal_moves(game.get_opponent(player))
+    moves_my_player = game.get_legal_moves(player)
+    moves_opp_player = game.get_legal_moves(game.get_opponent(player))
 
-    nMoves_active_player = len(moves_active_player)
-    nMoves_inactive_player = len(moves_inactive_player)
+    nMoves_my_player = len(moves_my_player)
+    nMoves_opp_player = len(moves_opp_player)
 
-    factor_active_player = 0.
-    factor_inactive_player = 0.
+    factor_my_player = 0.
+    factor_opp_player = 0.
 
     board_corners = [(0,0),(0,6),(6,0),(6,6)]
     three_moves = [(0,1),(1,0),(0,5),(1,6),(5,0),(6,1),(5,6),(6,5)]
@@ -69,35 +69,36 @@ def custom_score_2(game, player):
     six_moves = [(1,2),(1,3),(1,4),(2,1),(3,1),(4,1),(2,5),(3,5),(4,5),(5,2),(5,3),(5,4)]
     center = (3, 3)
 
-    for aMove in moves_active_player:
-        if aMove == center:
-            factor_active_player += 100
-        elif aMove in board_corners:
-            factor_active_player += 2
+    for aMove in moves_my_player:
+        if aMove in board_corners:
+            factor_my_player += 2
         elif aMove in three_moves:
-            factor_active_player += 3
+            factor_my_player += 3
         elif aMove in four_moves:
-            factor_active_player += 4
+            factor_my_player += 4
         elif aMove in six_moves:
-            factor_active_player += 6
+            factor_my_player += 6
         else:
-            factor_active_player += 8
+            factor_my_player += 8
 
-    for aMove in moves_inactive_player:
-        if aMove == center:
-            factor_active_player += -100
-        elif aMove in board_corners:
-            factor_active_player += -2
+    for aMove in moves_opp_player:
+        if aMove in board_corners:
+            factor_opp_player += 2
         elif aMove in three_moves:
-            factor_active_player += -3
+            factor_opp_player += 3
         elif aMove in four_moves:
-            factor_active_player += -4
+            factor_opp_player += 4
         elif aMove in six_moves:
-            factor_active_player += -6
+            factor_opp_player += 6
         else:
-            factor_active_player += -8
+            factor_opp_player += 8
 
-    return factor_active_player + factor_inactive_player
+    # if center in moves_my_player:
+    #     factor_my_player += 10
+    # elif center in moves_opp_player:
+    #     factor_opp_player += 10
+
+    return factor_my_player - factor_opp_player
 
 def custom_score_3(game, player):
     if game.is_loser(player):
@@ -106,28 +107,57 @@ def custom_score_3(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    moves_active_player = game.get_legal_moves(player)
-    moves_inactive_player = game.get_legal_moves(game.get_opponent(player))
+    moves_my_player = game.get_legal_moves(player)
+    moves_opp_player = game.get_legal_moves(game.get_opponent(player))
 
-    nMoves_active_player = len(moves_active_player)
-    nMoves_inactive_player = len(moves_inactive_player)
+    nMoves_my_player = len(moves_my_player)
+    nMoves_opp_player = len(moves_opp_player)
 
+    factor_my_player = 0.
+    factor_opp_player = 0.
+
+    board_corners = [(0,0),(0,6),(6,0),(6,6)]
+    three_moves = [(0,1),(1,0),(0,5),(1,6),(5,0),(6,1),(5,6),(6,5)]
+    four_moves = [(0,2),(0,3),(0,4),(1,1),(1,5),(2,0),(3,0),(4,0),(2,6),(3,6),(4,6),(5,1),(5,5),(6,2),(6,3),(6,4)]
+    six_moves = [(1,2),(1,3),(1,4),(2,1),(3,1),(4,1),(2,5),(3,5),(4,5),(5,2),(5,3),(5,4)]
     center = (3, 3)
-    factor_active_player = 1.
-    factor_inactive_player = 1.
 
-    if center in moves_active_player:
-        factor_active_player += 10
-    elif center in moves_inactive_player:
-        factor_inactive_player += 10
+    for aMove in moves_my_player:
+        if aMove in board_corners:
+            factor_my_player += 4
+        elif aMove in three_moves:
+            factor_my_player += 9
+        elif aMove in four_moves:
+            factor_my_player += 16
+        elif aMove in six_moves:
+            factor_my_player += 36
+        else:
+            factor_my_player += 64
 
-    return factor_active_player * nMoves_active_player - factor_inactive_player * nMoves_inactive_player
+    for aMove in moves_opp_player:
+        if aMove in board_corners:
+            factor_opp_player += 4
+        elif aMove in three_moves:
+            factor_opp_player += 9
+        elif aMove in four_moves:
+            factor_opp_player += 16
+        elif aMove in six_moves:
+            factor_opp_player += 36
+        else:
+            factor_opp_player += 64
+
+    # if center in moves_my_player:
+    #     factor_my_player += 100
+    # elif center in moves_opp_player:
+    #     factor_opp_player += 100
+
+    return factor_my_player - factor_opp_player
 
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
     constructed or tested directly.
     """
-    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=3, score_fn=custom_score, timeout=15.):
         #print("in IsolationPlayer.__init__()")
         self.search_depth = search_depth
         self.score = score_fn
@@ -147,7 +177,7 @@ class MinimaxPlayer(IsolationPlayer):
         # in case the search fails due to timeout
         best_move = (-1, -1)
 
-        if self.time_left() < 0:
+        if self.time_left() <= 0:
             return best_move
 
         try:
@@ -207,14 +237,14 @@ class AlphaBetaPlayer(IsolationPlayer):
     """
 
     def get_move(self, game, time_left):
-        #print("in AlphaBetaPlayer.get_move()")
+        #print("AB_get_move()")
         self.time_left = time_left
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
         best_move = (-1, -1)
 
-        if self.time_left() < 0:
+        if self.time_left() <= 0:
             return best_move
 
         try:
@@ -229,7 +259,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
-        #print("in AlphaBetaPlayer.alphabeta()")
+        #print("AB_alphabeta()")
         best_score = float("-inf")
         best_move = None
 
@@ -253,10 +283,13 @@ class AlphaBetaPlayer(IsolationPlayer):
         return not bool(game.get_legal_moves())
 
     def max_value(self, game, depth, alpha, beta):
-        #print("in MinimaxPlayer.max_value()")
+        #print("in AB_Max()")
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         if depth == 0 or self.terminal_test(game):
+            #print("AB_Max: Cutoff. depth=", depth, "terminate=", self.terminal_test(game))
+            #print("\tScore=", self.score(game, self))
+            #game.to_string()
             return self.score(game, self)
         aScore = float("-inf")
         for aMove in game.get_legal_moves():
@@ -267,10 +300,13 @@ class AlphaBetaPlayer(IsolationPlayer):
         return aScore
 
     def min_value(self, game, depth, alpha, beta):
-        #print("in MinimaxPlayer.min_value()")
+        #print("in AB_Min()")
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         if depth == 0 or self.terminal_test(game):
+            #print("AB_Min: Cutoff. depth=", depth, "terminate=", self.terminal_test(game))
+            #print("\tScore=", self.score(game, self))
+            #game.to_string()
             return self.score(game, self)
         aScore = float("inf")
         for aMove in game.get_legal_moves():
